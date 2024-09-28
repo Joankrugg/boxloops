@@ -1,27 +1,37 @@
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #f0f0f0;
-}
-
+/* Container pour les divs */
 .container {
     display: grid;
-    grid-template-columns: repeat(4, 100px);
-    grid-gap: 10px;
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes de taille égale */
+    gap: 10px; /* Espace entre les cases */
+    padding: 20px;
 }
 
-.loop-box {
-    width: 100px;
-    height: 100px;
-    background-color: #3498db;
-    border-radius: 5px;
+/* Style pour chaque div (carré) */
+.box {
+    background-color: #4CAF50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    height: 150px; /* Hauteur fixe des cases */
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-.loop-box.active {
-    background-color: #2ecc71;
+/* Changement de couleur au survol */
+.box:hover {
+    background-color: #45a049;
+}
+
+/* Carrés actifs */
+.box.active {
+    background-color: #ff5722;
+}
+
+/* Responsivité : ajustement de la taille des cases */
+@media (max-width: 600px) {
+    .box {
+        height: 100px;
+    }
 }
