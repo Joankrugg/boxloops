@@ -9,13 +9,13 @@ body {
 
 .container {
     display: grid;
-    grid-template-columns: repeat(3, 100px);
-    grid-gap: 10px;
+    grid-template-columns: repeat(4, 70px);
+    grid-gap: 5px;
 }
 
 .loop-box {
-    width: 100px;
-    height: 100px;
+    width: 70px;
+    height: 70px;
     background-color: #3498db;
     border-radius: 5px;
     cursor: pointer;
