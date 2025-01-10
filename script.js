@@ -2,8 +2,6 @@
 let audioContext;
 let audioBuffers = {};
 let playingLoops = {};
-const bpm = 120;
-const measureTime = (60 / bpm) * 4; // Durée d'une mesure (4 temps)
 
 // Fonction pour démarrer l'AudioContext après un clic
 function initAudioContext() {
@@ -19,44 +17,29 @@ async function loadAudio(url) {
     return audioContext.decodeAudioData(arrayBuffer);
 }
 
-// Fonction pour démarrer une boucle audio
-function startLoop(id) {
+// Fonction pour démarrer une boucle audio tant que le bouton est pressé
+function playSample(id) {
     initAudioContext(); // Assurer que l'AudioContext est bien initialisé
-    
+
     const buffer = audioBuffers[id];
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
-    source.loop = true;
 
     // Connecter la source au contexte audio
     source.connect(audioContext.destination);
 
-    // Synchroniser la lecture avec le BPM
-    const now = audioContext.currentTime;
-    const nextStartTime = Math.ceil(now / measureTime) * measureTime; // Prochaine mesure entière
-    source.start(nextStartTime); // Démarrer au prochain battement
+    // Démarrer immédiatement
+    source.start();
 
-    playingLoops[id] = source; // Sauvegarder la source pour l'arrêter plus tard
+    // Stocker la source pour pouvoir l'arrêter
+    playingLoops[id] = source;
 }
 
-// Fonction pour arrêter une boucle audio
-function stopLoop(id) {
+// Fonction pour arrêter la lecture d'un sample
+function stopSample(id) {
     if (playingLoops[id]) {
         playingLoops[id].stop(); // Arrêter la lecture
         delete playingLoops[id]; // Supprimer la référence à la source
-    }
-}
-
-// Fonction pour basculer l'état d'une boucle (toggle)
-function toggleLoop(id) {
-    const box = document.getElementById(id);
-
-    if (box.classList.contains('active')) {
-        stopLoop(id); // Arrêter la boucle si elle est active
-        box.classList.remove('active');
-    } else {
-        startLoop(id); // Démarrer la boucle si elle n'est pas active
-        box.classList.add('active');
     }
 }
 
@@ -72,8 +55,16 @@ window.onload = async () => {
             const audioBuffer = await loadAudio(`loops/loop${i}.mp3`); // Charger chaque boucle audio
             audioBuffers[`loop${i}`] = audioBuffer; // Stocker le buffer audio
 
-            // Ajouter un événement au clic pour chaque carré
-            document.getElementById(`loop${i}`).addEventListener('click', () => toggleLoop(`loop${i}`));
+            const box = document.getElementById(`loop${i}`);
+
+            // Jouer lorsque le bouton est pressé
+            box.addEventListener('mousedown', () => playSample(`loop${i}`));
+            box.addEventListener('touchstart', () => playSample(`loop${i}`), { passive: true });
+
+            // Arrêter lorsque le bouton est relâché
+            box.addEventListener('mouseup', () => stopSample(`loop${i}`));
+            box.addEventListener('mouseleave', () => stopSample(`loop${i}`)); // Si le curseur sort du bouton
+            box.addEventListener('touchend', () => stopSample(`loop${i}`));
         }
     }, { once: true }); // S'assurer que cet événement ne se déclenche qu'une seule fois
 };
