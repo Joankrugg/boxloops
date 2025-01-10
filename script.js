@@ -68,5 +68,3 @@ window.onload = async () => {
         }
     }, { once: true }); // S'assurer que cet événement ne se déclenche qu'une seule fois
 };
-
-
