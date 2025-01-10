@@ -2,7 +2,6 @@
 let audioContext;
 let audioBuffers = {};
 let playingLoops = {};
-let activeTouches = new Set(); // Pour suivre les touches actives
 
 // Fonction pour démarrer l'AudioContext après un clic
 function initAudioContext() {
@@ -25,10 +24,8 @@ function playSample(id) {
     const buffer = audioBuffers[id];
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
-
-    // Connecter directement à la destination
+    source.loop = true; // Activer la boucle
     source.connect(audioContext.destination);
-
     source.start();
     playingLoops[id] = source;
 }
@@ -41,21 +38,11 @@ function stopSample(id) {
     }
 }
 
-// Gestion des événements tactiles
-function handleTouchStart(event, id) {
-    event.preventDefault();
-    activeTouches.add(id);
-
-    if (!playingLoops[id]) {
+// Gestion des événements
+function handleInteraction(event, id) {
+    if (event.type === 'mousedown' || event.type === 'touchstart') {
         playSample(id);
-    }
-}
-
-function handleTouchEnd(event, id) {
-    event.preventDefault();
-    activeTouches.delete(id);
-
-    if (playingLoops[id]) {
+    } else if (event.type === 'mouseup' || event.type === 'touchend' || event.type === 'mouseleave' || event.type === 'touchcancel') {
         stopSample(id);
     }
 }
@@ -71,15 +58,13 @@ window.onload = async () => {
 
             const box = document.getElementById(`loop${i}`);
 
-            // Événements pour les interactions de souris
-            box.addEventListener('mousedown', () => playSample(`loop${i}`));
-            box.addEventListener('mouseup', () => stopSample(`loop${i}`));
-            box.addEventListener('mouseleave', () => stopSample(`loop${i}`)); // Sortie de la zone
+            box.addEventListener('mousedown', (e) => handleInteraction(e, `loop${i}`));
+            box.addEventListener('mouseup', (e) => handleInteraction(e, `loop${i}`));
+            box.addEventListener('mouseleave', (e) => handleInteraction(e, `loop${i}`));
 
-            // Événements pour les interactions tactiles
-            box.addEventListener('touchstart', (e) => handleTouchStart(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchend', (e) => handleTouchEnd(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchcancel', (e) => handleTouchEnd(e, `loop${i}`), { passive: false }); // Cas spécial : interruption du toucher
+            box.addEventListener('touchstart', (e) => handleInteraction(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchend', (e) => handleInteraction(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchcancel', (e) => handleInteraction(e, `loop${i}`), { passive: false });
         }
 
         console.log("Événements configurés pour mobile et desktop.");
