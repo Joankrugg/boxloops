@@ -60,7 +60,7 @@ window.onload = async () => {
     document.body.addEventListener('click', async () => {
         initAudioContext();
 
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 1; i <= 48; i++) {
             const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
             audioBuffers[`loop${i}`] = audioBuffer;
 
