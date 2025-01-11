@@ -1,40 +1,39 @@
-// Contexte audio global
+// Contexte audio global (ne sera activé qu'après un geste utilisateur)
 let audioContext;
 let audioBuffers = {};
 let playingLoops = {};
 
-// Initialisation de l'AudioContext
+// Fonction pour démarrer l'AudioContext après un clic ou un toucher
 function initAudioContext() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 }
 
-// Chargement des fichiers audio
+// Fonction pour charger les fichiers audio
 async function loadAudio(url) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Erreur de chargement : ${response.statusText}`);
-        const arrayBuffer = await response.arrayBuffer();
-        return await audioContext.decodeAudioData(arrayBuffer);
-    } catch (error) {
-        console.error(`Erreur de chargement audio pour ${url} :`, error);
-        throw error;
-    }
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    return audioContext.decodeAudioData(arrayBuffer);
 }
 
-// Lecture d'un sample
+// Fonction pour jouer un sample
 function playSample(id) {
     initAudioContext();
     const buffer = audioBuffers[id];
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
+
+    // Connecter la source au contexte audio
     source.connect(audioContext.destination);
+
+    // Démarrer immédiatement
     source.start();
+
     playingLoops[id] = source;
 }
 
-// Arrêt d'un sample
+// Fonction pour arrêter un sample
 function stopSample(id) {
     if (playingLoops[id]) {
         playingLoops[id].stop();
@@ -42,37 +41,26 @@ function stopSample(id) {
     }
 }
 
-// Gestion des événements
-function handleStart(event, id) {
-    if (event.cancelable) event.preventDefault();
-    console.log(`handleStart déclenché pour : ${id}`);
-    if (!playingLoops[id]) playSample(id);
-}
-
-function handleEnd(event, id) {
-    if (event.cancelable) event.preventDefault();
-    console.log(`handleEnd déclenché pour : ${id}`);
-    if (playingLoops[id]) stopSample(id);
-}
-
-// Chargement des boucles audio et configuration des événements
+// Charger les boucles audio
 window.onload = async () => {
-    document.body.addEventListener('click', async () => {
-        initAudioContext();
-
-        for (let i = 1; i <= 12; i++) {
-            const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
-            audioBuffers[`loop${i}`] = audioBuffer;
-
-            const box = document.getElementById(`loop${i}`);
-            box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
-            box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
-            box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`));
-            box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false });
-        }
-
-        console.log("Événements configurés pour mobile et desktop.");
+    document.body.addEventListener('touchstart', () => {
+        if (!audioContext) initAudioContext();
     }, { once: true });
+
+    for (let i = 1; i <= 12; i++) {
+        const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
+        audioBuffers[`loop${i}`] = audioBuffer;
+
+        const box = document.getElementById(`loop${i}`);
+
+        box.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            playSample(`loop${i}`);
+        });
+
+        box.addEventListener('touchend', (event) => {
+            event.preventDefault();
+            stopSample(`loop${i}`);
+        });
+    }
 };

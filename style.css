@@ -5,7 +5,10 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
-    touch-action: none;
+    touch-action: manipulation;
+    -webkit-user-select: none; /* Désactive la sélection de texte sur iOS */
+    user-select: none;
+    cursor: pointer;
 }
 
 .container {
@@ -20,6 +23,7 @@ body {
     background-color: #3498db;
     border-radius: 5px;
     cursor: pointer !important;
+    touch-action: manipulation;
     transition: background-color 0.3s ease;
     -webkit-user-select: none; /* Empêche la sélection sur iOS */
     user-select: none;
