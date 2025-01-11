@@ -60,22 +60,21 @@ window.onload = async () => {
     document.body.addEventListener('click', async () => {
         initAudioContext();
 
-        for (let i = 1; i <= 48; i++) {
+        for (let i = 1; i <= 24; i++) {
             const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
             audioBuffers[`loop${i}`] = audioBuffer;
 
             const box = document.getElementById(`loop${i}`);
-            if (box) { // Vérifier si l'élément existe
-                // Événements pour les interactions de souris
-                box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
-                box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
-                box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`)); // Sortie de la zone
 
-                // Événements pour les interactions tactiles
-                box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
-                box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
-                box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false }); // Cas d'interruption
-            }
+            // Événements pour les interactions de souris
+            box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
+            box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
+            box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`)); // Sortie de la zone
+
+            // Événements pour les interactions tactiles
+            box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false }); // Cas d'interruption
         }
 
         console.log("Événements configurés pour mobile et desktop.");
