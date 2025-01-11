@@ -1,39 +1,38 @@
-// Contexte audio global (ne sera activé qu'après un geste utilisateur)
+// Contexte audio global
 let audioContext;
 let audioBuffers = {};
 let playingLoops = {};
 
-// Fonction pour démarrer l'AudioContext après un clic ou un toucher
+// Fonction pour démarrer l'AudioContext après un clic
 function initAudioContext() {
     if (!audioContext) {
+        console.log("Initialisation de l'AudioContext...");
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 }
 
-// Fonction pour charger les fichiers audio
+// Charger les fichiers audio
 async function loadAudio(url) {
     const response = await fetch(url);
     const arrayBuffer = await response.arrayBuffer();
     return audioContext.decodeAudioData(arrayBuffer);
 }
 
-// Fonction pour jouer un sample
+// Jouer un sample
 function playSample(id) {
     initAudioContext();
     const buffer = audioBuffers[id];
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
 
-    // Connecter la source au contexte audio
+    // Connecter directement à la destination
     source.connect(audioContext.destination);
 
-    // Démarrer immédiatement
     source.start();
-
     playingLoops[id] = source;
 }
 
-// Fonction pour arrêter un sample
+// Arrêter un sample
 function stopSample(id) {
     if (playingLoops[id]) {
         playingLoops[id].stop();
@@ -41,26 +40,43 @@ function stopSample(id) {
     }
 }
 
-// Charger les boucles audio
-window.onload = async () => {
-    document.body.addEventListener('touchstart', () => {
-        if (!audioContext) initAudioContext();
-    }, { once: true });
-
-    for (let i = 1; i <= 12; i++) {
-        const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
-        audioBuffers[`loop${i}`] = audioBuffer;
-
-        const box = document.getElementById(`loop${i}`);
-
-        box.addEventListener('touchstart', (event) => {
-            event.preventDefault();
-            playSample(`loop${i}`);
-        });
-
-        box.addEventListener('touchend', (event) => {
-            event.preventDefault();
-            stopSample(`loop${i}`);
-        });
+// Gestion des interactions tactiles et souris
+function handleStart(event, id) {
+    event.preventDefault(); // Empêcher le comportement par défaut (sélection, défilement)
+    if (!playingLoops[id]) {
+        playSample(id);
     }
+}
+
+function handleEnd(event, id) {
+    event.preventDefault(); // Empêcher le comportement par défaut
+    if (playingLoops[id]) {
+        stopSample(id);
+    }
+}
+
+// Charger les sons et configurer les événements
+window.onload = async () => {
+    document.body.addEventListener('click', async () => {
+        initAudioContext();
+
+        for (let i = 1; i <= 12; i++) {
+            const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
+            audioBuffers[`loop${i}`] = audioBuffer;
+
+            const box = document.getElementById(`loop${i}`);
+
+            // Événements pour les interactions de souris
+            box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
+            box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
+            box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`)); // Sortie de la zone
+
+            // Événements pour les interactions tactiles
+            box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
+            box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false }); // Cas d'interruption
+        }
+
+        console.log("Événements configurés pour mobile et desktop.");
+    }, { once: true });
 };
