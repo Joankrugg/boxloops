@@ -45,11 +45,13 @@ function stopSample(id) {
 // Gestion des événements
 function handleStart(event, id) {
     if (event.cancelable) event.preventDefault();
+    console.log(`handleStart déclenché pour : ${id}`);
     if (!playingLoops[id]) playSample(id);
 }
 
 function handleEnd(event, id) {
     if (event.cancelable) event.preventDefault();
+    console.log(`handleEnd déclenché pour : ${id}`);
     if (playingLoops[id]) stopSample(id);
 }
 

@@ -5,6 +5,7 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
+    touch-action: none;
 }
 
 .container {
@@ -18,12 +19,14 @@ body {
     height: 70px;
     background-color: #3498db;
     border-radius: 5px;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: background-color 0.3s ease;
+    -webkit-user-select: none; /* Empêche la sélection sur iOS */
+    user-select: none;
 }
 
 .loop-box.active {
     background-color: #2ecc71;
+    transform: scale(0.9);
 }
-
 
