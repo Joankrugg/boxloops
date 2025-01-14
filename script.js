@@ -13,15 +13,31 @@ function initAudioContext() {
 
 // Charger les fichiers audio
 async function loadAudio(url) {
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    return audioContext.decodeAudioData(arrayBuffer);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Erreur lors du chargement de ${url}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        return audioContext.decodeAudioData(arrayBuffer);
+    } catch (error) {
+        console.error("Erreur de chargement audio :", error);
+        return null;
+    }
 }
 
 // Jouer un sample
 function playSample(id) {
-    initAudioContext();
+    if (!audioContext) {
+        console.error("AudioContext non initialisé. Assurez-vous d'avoir cliqué sur l'écran pour l'activer.");
+        return;
+    }
     const buffer = audioBuffers[id];
+    if (!buffer) {
+        console.error(`Le buffer pour ${id} n'est pas chargé.`);
+        return;
+    }
+
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
 
@@ -62,21 +78,31 @@ window.onload = async () => {
 
         for (let i = 1; i <= 24; i++) {
             const audioBuffer = await loadAudio(`loops/loop${i}.mp3`);
-            audioBuffers[`loop${i}`] = audioBuffer;
+            if (audioBuffer) {
+                audioBuffers[`loop${i}`] = audioBuffer;
 
-            const box = document.getElementById(`loop${i}`);
+                const box = document.getElementById(`loop${i}`);
 
-            // Événements pour les interactions de souris
-            box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
-            box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
-            box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`)); // Sortie de la zone
+                if (box) {
+                    // Événements pour les interactions de souris
+                    box.addEventListener('mousedown', (e) => handleStart(e, `loop${i}`));
+                    box.addEventListener('mouseup', (e) => handleEnd(e, `loop${i}`));
+                    box.addEventListener('mouseleave', (e) => handleEnd(e, `loop${i}`)); // Sortie de la zone
 
-            // Événements pour les interactions tactiles
-            box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
-            box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false }); // Cas d'interruption
+                    // Événements pour les interactions tactiles
+                    box.addEventListener('touchstart', (e) => handleStart(e, `loop${i}`), { passive: false });
+                    box.addEventListener('touchend', (e) => handleEnd(e, `loop${i}`), { passive: false });
+                    box.addEventListener('touchcancel', (e) => handleEnd(e, `loop${i}`), { passive: false }); // Cas d'interruption
+                }
+            }
         }
 
         console.log("Événements configurés pour mobile et desktop.");
     }, { once: true });
+
+    // S'assurer que l'AudioContext est initialisé lors d'une interaction tactile initiale
+    document.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        initAudioContext();
+    }, { passive: false });
 };
